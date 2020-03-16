@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.Stack;
 
-public class Trie<T> {//extends Node {
+public class Trie<T> {
 	
 	private Node mRoot;
 	private static final int ENGLISH_ALPHABET_SIZE = 26;
@@ -105,41 +105,16 @@ public class Trie<T> {//extends Node {
 		currentNode.setIsWord(true); // as we reach the end of the path that represents the given word, we mark the node as a word
 	}
 	
-	// save prefixes separately from the rest of the word. Clear out prefixes when you bounce back from a leaf node
-	public ArrayList<String> getWordList(){
-		
-		Stack<Node> s = new Stack<Node>();
-		ArrayList<String> wordList = new ArrayList<String>();
-		Node currentNode = mRoot;
-		String word = "";
-		s.push(currentNode);
-		
-		while(!s.isEmpty()) {
-			
-			currentNode = s.peek();
-			s.pop();
-			word += Character.toString(currentNode.getChar());
-			
-			for(int i = 0; i < ENGLISH_ALPHABET_SIZE; i++) {
-				if(currentNode.getNode(i) != null) {
-					s.push(currentNode.getNode(i));
-				}
-			}
-			if(currentNode.isWord() ) { 
-				wordList.add(word);
-				word = word.substring(0, s.size()+1); // the size of the stack tells us the size of the "prefix"
-			}
-		}
-		return wordList;
-	}
 	
 	public ArrayList<String> getWordList(String prefix, Node root, ArrayList<String> wordList){
 		Node currentNode;
 		for(int i = 0; i < ENGLISH_ALPHABET_SIZE; i++) {
 			currentNode = root.getNode(i);
 			if(currentNode != null) {
-				if(currentNode.isWord())
+				if(currentNode.isWord()) {
 					wordList.add(prefix+currentNode.getChar());
+					getWordList(prefix+currentNode.getChar(), currentNode, wordList); // check if this word itself is a prefix for other words
+				}
 				else
 					getWordList(prefix+currentNode.getChar(), currentNode, wordList);
 			}
