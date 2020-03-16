@@ -3,7 +3,7 @@ import java.util.Stack;
 
 public class Trie<T> {//extends Node {
 	
-	Node root;
+	private Node mRoot;
 	private static final int ENGLISH_ALPHABET_SIZE = 26;
 	private static final int ASCII_DIFF = 97; // only works with lower case letters
 	
@@ -77,13 +77,17 @@ public class Trie<T> {//extends Node {
 
 	
 	public Trie(){
-		root = new Node();
-		root.setValue(-1);
+		mRoot = new Node();
+		mRoot.setValue(-1);
+	}
+	
+	public Node getRoot() {
+		return mRoot;
 	}
 	
 	public void setWord(String word) {
 		int value = 1;
-		Node currentNode = root;
+		Node currentNode = mRoot;
 		word = word.toLowerCase();
 		Node childNode;
 		for(int i = 0; i < word.length(); i++) {
@@ -106,7 +110,7 @@ public class Trie<T> {//extends Node {
 		
 		Stack<Node> s = new Stack<Node>();
 		ArrayList<String> wordList = new ArrayList<String>();
-		Node currentNode = root;
+		Node currentNode = mRoot;
 		String word = "";
 		s.push(currentNode);
 		
@@ -129,64 +133,43 @@ public class Trie<T> {//extends Node {
 		return wordList;
 	}
 	
-	public ArrayList<String> getSuggestions(String input){
-		int CUR_IDX = 0;
+	public ArrayList<String> getWordList(String prefix, Node root, ArrayList<String> wordList){
+		Node currentNode;
+		for(int i = 0; i < ENGLISH_ALPHABET_SIZE; i++) {
+			currentNode = root.getNode(i);
+			if(currentNode != null) {
+				if(currentNode.isWord())
+					wordList.add(prefix+currentNode.getChar());
+				else
+					getWordList(prefix+currentNode.getChar(), currentNode, wordList);
+			}
+		}
+		return wordList;
+	}
+	
+	public ArrayList<String> getSuggestionsList(String input){
 		input = input.toLowerCase();
 		ArrayList<String> suggestionList = new ArrayList<String>();
-		char curLetter;
-		int curLetterIdx;
 		
-		// take the first character in the input string and grab the corresponding child node from the root
-		// then check which nodes of that child node have a non-null value and follow each one till we hit 
-		// a null node. Along the way check if the new node we've arrived at is a word, if so, add it to the 
-		// array list we'll return at the end.
+		Node currentNode = mRoot;
+		Node childNode = null;
 		
-		
-		// OR, go down a path on the trie that represents the word. Then go down all possible paths to come up 
-		// with suggestions.
-		
-		Node curNode = root;
-		int endIdx = 0;
-		// this loop will traverse down the path in the tree that matches the input
-		// Q: What happens if there is no match for the whole word?
+		// First reach the node which marks the end of the path representing the input string.
 		for(int i = 0; i < input.length(); i++) {
-			
-			curLetter = input.charAt(i);
-			curLetterIdx = curLetter - ASCII_DIFF;
-			endIdx = i;
-			if(curNode.getNode(curLetterIdx) == null)
+			childNode = currentNode.getNode( Node.charToIdx(input.charAt(i)) );
+			if(childNode != null)
+				currentNode = childNode;
+			else {
+				// in case there's only a partial match, search the subsection of the trie that matches the partial
+				input = input.substring(0, i);
 				break;
-			else
-				curNode = curNode.getNode(curLetterIdx);
-		}
-		
-		String suggestion = input.substring(0, endIdx);
-		if(curNode.isWord()) {
-			suggestion += curNode.getChar();
-			suggestionList.add(suggestion);
-		}
-		
-		// At this point curNode holds the node that marks the end of the input word
-		// Should I use Depth First Search here? Maybe with a limit related to how many suggestions we want to display?
-		Stack<Node> s = new Stack<Node>();
-		String subSuggestion = suggestion;
-		s.push(curNode);
-		while(!s.isEmpty()) {
-			Node n = s.peek();
-			subSuggestion = suggestion;
-			s.pop();
-			for(int i = 0; i < ENGLISH_ALPHABET_SIZE; i++) {
-				if(n.getNode(i) != null) {
-					
-					s.push(n.getNode(i));
-					
-					if(n.isWord())
-						suggestionList.add(subSuggestion); // have to keep track of what string has been formed
-				}
 			}
 		}
 		
+		// From here currentNode holds the node which acts as the root of all paths which represent words which are appropriate suggestions for the input
+		if(childNode != null)
+			suggestionList = getWordList(input, childNode, suggestionList);
+		
 		return suggestionList;
 	}
-
 }

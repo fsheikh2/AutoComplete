@@ -14,22 +14,28 @@ public class Main {
 		
 		System.out.println("Hello world!\n\n");
 		
-		ArrayList<String> wordList = trie.getWordList();
+		
+		ArrayList<String> wordList = new ArrayList<String>();
+		wordList = trie.getWordList("", trie.getRoot() , wordList);
+		
 		if(wordList.size() == 0)
 			System.out.println("\n\n The Trie Contains No Words :\\ \n\n");
+		else {
+			for(String word : wordList)
+				System.out.println(word);
+		}
 		
-		for(String word : wordList)
-			System.out.println(word);
 		
+		System.out.println("\n\n");
 		
-		ArrayList<String> suggestions = trie.getSuggestions("Pe");
+		// Words aren't being marked correctly, currently inputting "Pi" only suggests "pickled" and "piper".
+		ArrayList<String> suggestions = trie.getSuggestionsList("Pe");
 		if(suggestions.size() == 0)
 			System.out.println("\n\n No suggestions to show :/ \n\n");
-		for(String suggestion : suggestions)
-			System.out.println(suggestion + "\n");
-		
-		
-
+		else {
+			for(String suggestion : suggestions)
+				System.out.println(suggestion + "\n");
+		}
 	}
 	
 	public static void initWordBank(ArrayList<String> wordBank) {
